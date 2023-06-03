@@ -12,7 +12,7 @@ commands:
       name:
         name: name
         description: Name of the event
-      datetime:
+      when:
         name: when
         description: When the event will occur
       recur:
@@ -34,7 +34,7 @@ commands:
       fields:
         name:
           name: Name
-        date_time:
+        when:
           name: When
         recur:
           name: Recurs

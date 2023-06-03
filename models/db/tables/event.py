@@ -21,7 +21,7 @@ class Event(BaseModel):
         id (int, optional): The id of the event.
         user_id (int): The id of the user who created the event.
         name (str): The name of the event.
-        date_time (datetime): The date and time of the event.
+        when (datetime): The date and time of the event.
         recur (bool): Whether or not the event recurs.
         recur_interval (RecurInterval, optional): The interval at which the event recurs.
     """
@@ -29,11 +29,11 @@ class Event(BaseModel):
     id: int = None
     user_id: int
     name: str
-    date_time: datetime
+    when: datetime
     recur: bool
     recur_interval: Optional[RecurInterval] = None
 
-    @validator("date_time", pre=True)
+    @validator("when", pre=True)
     def convert_datetime(cls, v: str) -> datetime:
         """
         This validator converts the datetime string to a datetime object.
@@ -96,7 +96,7 @@ class EventTable:
             (
                 event.user_id,
                 event.name,
-                event.date_time.strftime("%Y-%m-%d %H:%M:%S"),
+                event.when.strftime("%Y-%m-%d %H:%M:%S"),
                 int(event.recur),
                 event.recur_interval.value if event.recur_interval else None,
             ),
@@ -122,7 +122,7 @@ class EventTable:
                 id=row[0],
                 user_id=row[1],
                 name=row[2],
-                date_time=row[3],
+                when=row[3],
                 recur=row[4],
                 recur_interval=row[5],
             )
@@ -154,7 +154,7 @@ class EventTable:
                 id=row[0],
                 user_id=row[1],
                 name=row[2],
-                date_time=row[3],
+                when=row[3],
                 recur=row[4],
                 recur_interval=row[5],
             )

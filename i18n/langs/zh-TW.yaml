@@ -12,7 +12,7 @@ commands:
       name:
         name: 名稱
         description: 行程名稱
-      datetime:
+      when:
         name: 日期和時間
         description: 行程的日期與時間
       recur:
@@ -34,7 +34,7 @@ commands:
       fields:
         name:
           name: 名稱
-        date_time:
+        when:
           name: 日期和時間
         recur:
           name: 重複行程
