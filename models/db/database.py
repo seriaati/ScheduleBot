@@ -8,9 +8,8 @@ class DataBase:
     This class represents the database.
     """
 
-    def __init__(self) -> None:
-        self.conn: aiosqlite.Connection
-        self.events = EventTable(self.conn)
+    conn: aiosqlite.Connection
+    events: EventTable
 
     async def start(self) -> None:
         """
@@ -22,6 +21,7 @@ class DataBase:
             None
         """
         await self.connect()
+        self.events = EventTable(self.conn)
         await self.create_tables()
 
     async def connect(self) -> None:
