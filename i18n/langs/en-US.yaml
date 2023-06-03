@@ -13,8 +13,8 @@ commands:
         name: name
         description: Name of the event
       datetime:
-        name: datetime
-        description: Date and time of the event
+        name: when
+        description: When the event will occur
       recur:
         name: recur
         description: Whether the event recurs
@@ -35,7 +35,7 @@ commands:
         name:
           name: Name
         date_time:
-          name: Date and time
+          name: When
         recur:
           name: Recurs
           values:
