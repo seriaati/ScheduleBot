@@ -1,14 +1,12 @@
-import asyncio
 import logging
 import os
 from pathlib import Path
-from typing import Any, Coroutine
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from models.bot import Bot
+from models.bot import Bot, BotTranslator
 from models.db.database import DataBase
 
 
@@ -23,14 +21,14 @@ class ScheduleBot(Bot):
         )
         self.db = DataBase()
 
-    async def setup_hook(self) -> Coroutine[Any, Any, None]:
+    async def setup_hook(self) -> None:
         """
         Set up the bot.
 
         This method sets up logging, loads the jishaku extension and loads all cogs in the 'cogs' folder.
 
         Returns:
-            Coroutine[Any, Any, None]
+            None
         """
         # setup logging
         self.setup_logging()
@@ -38,6 +36,9 @@ class ScheduleBot(Bot):
 
         # start the database
         await self.db.start()
+        
+        # setup translator
+        await self.tree.set_translator(BotTranslator())
 
         # load jishaku
         await self.load_extension("jishaku")
@@ -50,7 +51,6 @@ class ScheduleBot(Bot):
         Set up logging for the bot.
 
         This function sets up basic logging to a file named "schedule_bot.log" and to the console.
-        It also sets up logging for the discord.py library.
 
         Returns:
             None
@@ -70,9 +70,6 @@ class ScheduleBot(Bot):
         console.setFormatter(formatter)
         logging.getLogger("").addHandler(console)
 
-        # setup discord.py logging
-        logging.getLogger("discord").setLevel(logging.INFO)
-
     async def load_cogs(self) -> None:
         """
         Load all cogs in the 'cogs' folder.
@@ -87,7 +84,7 @@ class ScheduleBot(Bot):
             try:
                 await self.load_extension(f"cogs.{cog.stem}")
             except Exception as e:  # skipcq: PYL-W0703
-                logging.error(f"[Bot]Failed to load cog {cog.stem}: {e}")
+                logging.error(f"[Bot]Failed to load cog {cog.stem}: {e}", exc_info=True)
             else:
                 logging.info(f"[Bot]Loaded cog {cog.stem}")
 
@@ -100,6 +97,7 @@ class ScheduleBot(Bot):
         Returns:
             None
         """
+        assert self.user
         logging.info(f"[Bot]Logged in as {self.user.name} ({self.user.id})")
 
     async def on_message(self, message: discord.Message) -> None:
@@ -146,8 +144,8 @@ class ScheduleBot(Bot):
             None
         """
         await self.db.close()
-        logging.info("[Bot]Closed bot")
         await super().close()
+        logging.info("[Bot]Closed bot")
 
 
 bot = ScheduleBot()
@@ -174,18 +172,8 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
     await bot.process_commands(after)
 
 
-async def main() -> None:
-    """
-    This function starts the bot.
-
-    Returns:
-        None
-    """
-    load_dotenv()
-    token = os.getenv("TOKEN")
-    if token is None:
-        raise ValueError("TOKEN environment variable not set")
-    await bot.start(token)
-
-
-asyncio.run(main())
+load_dotenv()
+token = os.getenv("TOKEN")
+if token is None:
+    raise ValueError("TOKEN environment variable not set")
+bot.run(token)

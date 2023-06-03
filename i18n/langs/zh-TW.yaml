@@ -1,0 +1,54 @@
+commands:
+  list:
+    name: list
+    description: 列出即將發生的前十個已規劃的行程
+    embed:
+      title: 已規劃的行程（即將發生的前十個）
+      footer: '共 {total} 個行程'
+  add:
+    name: add
+    description: 規劃新的行程
+    params:
+      name:
+        name: 名稱
+        description: 行程名稱
+      datetime:
+        name: 日期和時間
+        description: 行程的日期與時間
+      recur:
+        name: 重複
+        description: 行程是否重複
+        choices:
+          'yes': 是
+          'no': 否
+      recur_interval:
+        name: 重複間隔
+        description: 行程的重複間隔
+        choices:
+          daily: 每日
+          weekly: 每週
+          monthly: 每月
+          yearly: 每年
+    embed:
+      title: 行程規劃成功
+      fields:
+        name:
+          name: 名稱
+        date_time:
+          name: 日期和時間
+        recur:
+          name: 重複行程
+          values:
+            'yes': 是
+            'no': 否
+        recur_interval:
+          name: 重複間隔
+          values:
+            '1': 每日
+            '2': 每週
+            '3': 每月
+            '4': 每年
+event_reminder:
+  embed:
+    title: 行程提醒
+    rercurring: 這個行程是重複的

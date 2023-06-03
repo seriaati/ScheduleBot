@@ -1,0 +1,54 @@
+commands:
+  list:
+    name: list
+    description: List the most recent 10 scheduled events
+    embed:
+      title: Scheduled Events (Most recent 10)
+      footer: '{total} events scheduled'
+  add:
+    name: add
+    description: Schedule a new event
+    params:
+      name:
+        name: name
+        description: Name of the event
+      datetime:
+        name: datetime
+        description: Date and time of the event
+      recur:
+        name: recur
+        description: Whether the event recurs
+        choices:
+          'yes': 'Yes'
+          'no': 'No'
+      recur_interval:
+        name: recur_interval
+        description: Interval of recurrence
+        choices:
+          daily: Daily
+          weekly: Weekly
+          monthly: Monthly
+          yearly: Yearly
+    embed:
+      title: Event Scheduled
+      fields:
+        name:
+          name: Name
+        date_time:
+          name: Date and time
+        recur:
+          name: Recurs
+          values:
+            'yes': 'Yes'
+            'no': 'No'
+        recur_interval:
+          name: Recurrence interval
+          values:
+            '1': Daily
+            '2': Weekly
+            '3': Monthly
+            '4': Yearly
+event_reminder:
+  embed:
+    title: Event Reminder
+    recurring: This event is recurring
