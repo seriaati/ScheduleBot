@@ -1,0 +1,9 @@
+{
+    "apps": [
+        {
+            "name": "schedule_bot",
+            "script": "./run.py",
+            "interpreter": "python3.10"
+        }
+    ]
+}
