@@ -10,4 +10,4 @@ class DefaultEmbed(Embed):
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, color=0xDB56A6)
+        super().__init__(*args, **kwargs, color=0xF1DCE5)
