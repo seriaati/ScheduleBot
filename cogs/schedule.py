@@ -1,3 +1,5 @@
+import datetime
+import logging
 from typing import Optional
 
 import discord
@@ -5,6 +7,7 @@ import parsedatetime
 from discord import app_commands
 from discord.app_commands import locale_str as _T
 from discord.ext import commands
+from pytz import timezone
 
 from i18n.translator import translator
 from models.bot import Bot
@@ -22,7 +25,7 @@ class Schedule(commands.GroupCog, name="s"):
     )
     @app_commands.rename(
         name=_T("name", context="commands.add.params.name.name"),
-        datetime=_T("datetime", context="commands.add.params.datetime.name"),
+        when=_T("when", context="commands.add.params.when.name"),
         recur=_T("recur", context="commands.add.params.recur.name"),
         recur_interval=_T(
             "recur_interval", context="commands.add.params.recur_interval.name"
@@ -30,7 +33,7 @@ class Schedule(commands.GroupCog, name="s"):
     )
     @app_commands.describe(
         name=_T("name", context="commands.add.params.name.description"),
-        datetime=_T("datetime", context="commands.add.params.datetime.description"),
+        when=_T("when", context="commands.add.params.when.description"),
         recur=_T("recur", context="commands.add.params.recur.description"),
         recur_interval=_T(
             "recur_interval", context="commands.add.params.recur_interval.description"
@@ -79,20 +82,23 @@ class Schedule(commands.GroupCog, name="s"):
         self,
         i: discord.Interaction,
         name: str,
-        datetime: str,
+        when: str,
         recur: int = 0,
         recur_interval: Optional[int] = None,
     ) -> None:
         converted_interval = RecurInterval(recur_interval) if recur_interval else None
         cal = parsedatetime.Calendar()
-        datetime_obj, _ = cal.parseDT(datetimeString=datetime)
+        datetime_obj, _ = cal.parseDT(
+            datetimeString=when, tzinfo=timezone("Asia/Taipei")
+        )
         event = Event(
             user_id=i.user.id,
             name=name,
-            date_time=datetime_obj,
+            when=datetime_obj,
             recur=bool(recur),
             recur_interval=converted_interval,
         )
+        logging.info(f"[{i.user.id}] Adding event: {event}")
         await self.bot.db.events.add(event)
 
         lang = i.locale.value
@@ -104,8 +110,8 @@ class Schedule(commands.GroupCog, name="s"):
             inline=False,
         )
         embed.add_field(
-            name=translator.translate(lang, "commands.add.embed.fields.date_time.name"),
-            value=f"{discord.utils.format_dt(event.date_time)}/{discord.utils.format_dt(event.date_time, 'R')}",
+            name=translator.translate(lang, "commands.add.embed.fields.when.name"),
+            value=f"{discord.utils.format_dt(event.when)}/{discord.utils.format_dt(event.when, 'R')}",
             inline=False,
         )
         embed.add_field(
@@ -129,8 +135,11 @@ class Schedule(commands.GroupCog, name="s"):
             )
         embed.set_author(name=i.user.display_name, icon_url=i.user.display_avatar.url)
         await i.response.send_message(embed=embed)
-        cog = self.bot.cogs["AutoTask"]
-        self.bot.loop.create_task(cog.schedule_event(event))
+        
+        now = datetime.datetime.now(tz=timezone("Asia/Taipei"))
+        if event.when - now < datetime.timedelta(hours=12):
+            cog = self.bot.cogs["AutoTask"]
+            self.bot.loop.create_task(cog.schedule_event(event))
 
     @app_commands.command(
         name=_T("list", context="commands.list.name"),
@@ -147,7 +156,7 @@ class Schedule(commands.GroupCog, name="s"):
         for event in events[:10]:
             embed.add_field(
                 name=event.name,
-                value=f"- {discord.utils.format_dt(event.date_time)} ({discord.utils.format_dt(event.date_time, 'R')})\n- ID: {event.id}",
+                value=f"- {discord.utils.format_dt(event.when)} ({discord.utils.format_dt(event.when, 'R')})\n- ID: {event.id}",
                 inline=False,
             )
         embed.set_author(name=i.user.display_name, icon_url=i.user.display_avatar.url)

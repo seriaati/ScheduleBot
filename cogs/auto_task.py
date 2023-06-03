@@ -3,12 +3,14 @@ import datetime
 from datetime import timedelta
 from typing import List, Tuple
 
-from discord.ext import commands
+from discord.ext import commands, tasks
+from pytz import timezone
 
 from i18n.translator import translator
 from models.bot import Bot
 from models.db.tables.event import Event, RecurInterval
 from models.embeds import DefaultEmbed
+from utils import get_dt_now
 
 
 class AutoTask(commands.Cog):
@@ -23,6 +25,21 @@ class AutoTask(commands.Cog):
         Returns:
             None
         """
+        self.load_events_task.start()
+
+    times = [
+        datetime.time(hour=0, minute=0, second=0),
+        datetime.time(hour=12, minute=0, second=0),
+    ]
+
+    @tasks.loop(time=times)
+    async def load_events_task(self) -> None:
+        """
+        This function is called every 12 hours.
+
+        Returns:
+            None
+        """
         await self.load_events()
 
     async def load_events(self) -> None:
@@ -32,12 +49,12 @@ class AutoTask(commands.Cog):
         Returns:
             None
         """
-        self.event_queue = []
         events = await self.bot.db.events.get_all()
         for event in events:
-            if event.date_time < datetime.datetime.now():
+            now = datetime.datetime.now(tz=timezone("Asia/Taipei"))
+            if event.when < now:
                 await self.bot.db.events.delete(event.id)
-            else:
+            elif now - event.when < timedelta(hours=12):
                 self.bot.loop.create_task(self.schedule_event(event))
 
     async def schedule_event(self, event: Event) -> None:
@@ -50,7 +67,7 @@ class AutoTask(commands.Cog):
         Returns:
             None
         """
-        time_until_event = event.date_time - datetime.datetime.now()
+        time_until_event = event.when - get_dt_now()
         await asyncio.sleep(time_until_event.total_seconds())
         await self.notify_user(event)
         if event.recur:
@@ -69,22 +86,23 @@ class AutoTask(commands.Cog):
             None
         """
         if event.recur_interval is RecurInterval.DAILY:
-            next_event = event.date_time + timedelta(days=1)
+            next_event = event.when + timedelta(days=1)
         elif event.recur_interval is RecurInterval.WEEKLY:
-            next_event = event.date_time + timedelta(weeks=1)
+            next_event = event.when + timedelta(weeks=1)
         elif event.recur_interval is RecurInterval.MONTHLY:
-            next_event = event.date_time.replace(month=event.date_time.month + 1)
+            next_event = event.when.replace(month=event.when.month + 1)
         elif event.recur_interval is RecurInterval.YEARLY:
-            next_event = event.date_time.replace(year=event.date_time.year + 1)
+            next_event = event.when.replace(year=event.when.year + 1)
         else:
             raise ValueError("Invalid recur interval")
 
         await self.bot.db.events.update(
             event.id,
-            date_time=next_event,
+            when=next_event,
         )
-        event.date_time = next_event
-        await self.schedule_event(event)
+        event.when = next_event
+        if next_event - get_dt_now() < timedelta(hours=12):
+            self.bot.loop.create_task(self.schedule_event(event))
 
     async def notify_user(self, event: Event) -> None:
         """
@@ -107,7 +125,7 @@ class AutoTask(commands.Cog):
             embed.set_footer(
                 text=f" ({translator.translate('en-US', 'event_reminder.embed.recurring')})"
             )
-        
+
         await user.send(embed=embed, content=user.mention)
 
 
