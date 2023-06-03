@@ -4,6 +4,7 @@ from typing import List, Optional
 
 import aiosqlite
 from pydantic import BaseModel, validator
+from pytz import timezone
 
 
 class RecurInterval(Enum):
@@ -46,7 +47,9 @@ class Event(BaseModel):
         """
         if isinstance(v, datetime):
             return v
-        return datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+        return datetime.strptime(v, "%Y-%m-%d %H:%M:%S").replace(
+            tzinfo=timezone("Asia/Taipei")
+        )
 
 
 class EventTable:
