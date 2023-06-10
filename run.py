@@ -16,7 +16,7 @@ class ScheduleBot(Bot):
         super().__init__(
             command_prefix=commands.when_mentioned,
             intents=intents,
-            activity=discord.Game(name="/remind"),
+            activity=discord.Game(name="/s add"),
             owner_ids=(410036441129943050, 260083371819008000, 274853284764975104),
         )
         self.db = DataBase()
