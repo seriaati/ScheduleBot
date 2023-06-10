@@ -163,8 +163,8 @@ class Schedule(commands.GroupCog, name="s"):
             context="commands.delete.description",
         ),
     )
-    @app_commands.rename(id=_T("ID", context="commands.delete.params.id.name"))
-    @app_commands.describe(id=_T("ID", context="commands.delete.params.id.description"))
+    @app_commands.rename(id=_T("id", context="commands.delete.params.id.name"))
+    @app_commands.describe(id=_T("id", context="commands.delete.params.id.description"))
     async def delete(self, i: discord.Interaction, id: int) -> None:
         await self.bot.db.events.delete(id)
         lang = i.locale.value
