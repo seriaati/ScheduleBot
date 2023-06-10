@@ -1,4 +1,15 @@
 commands:
+  delete:
+    name: delete
+    description: Delete a scheduled event by ID
+    params:
+      id:
+        name: id
+        description: ID of the event to delete
+    embed:
+      title: Event Deleted
+      description: 'Event #{id} deleted'
+      footer: Use /s list to view scheduled events
   list:
     name: list
     description: List the most recent 10 scheduled events
@@ -15,12 +26,6 @@ commands:
       when:
         name: when
         description: When the event will occur
-      recur:
-        name: recur
-        description: Whether the event recurs
-        choices:
-          'yes': 'Yes'
-          'no': 'No'
       recur_interval:
         name: recur_interval
         description: Interval of recurrence

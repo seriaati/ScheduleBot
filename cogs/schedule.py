@@ -26,7 +26,6 @@ class Schedule(commands.GroupCog, name="s"):
     @app_commands.rename(
         name=_T("name", context="commands.add.params.name.name"),
         when=_T("when", context="commands.add.params.when.name"),
-        recur=_T("recur", context="commands.add.params.recur.name"),
         recur_interval=_T(
             "recur_interval", context="commands.add.params.recur_interval.name"
         ),
@@ -34,20 +33,11 @@ class Schedule(commands.GroupCog, name="s"):
     @app_commands.describe(
         name=_T("name", context="commands.add.params.name.description"),
         when=_T("when", context="commands.add.params.when.description"),
-        recur=_T("recur", context="commands.add.params.recur.description"),
         recur_interval=_T(
             "recur_interval", context="commands.add.params.recur_interval.description"
         ),
     )
     @app_commands.choices(
-        recur=[
-            app_commands.Choice(
-                name=_T("Yes", context="commands.add.params.recur.choices.yes"), value=1
-            ),
-            app_commands.Choice(
-                name=_T("No", context="commands.add.params.recur.choices.no"), value=0
-            ),
-        ],
         recur_interval=[
             app_commands.Choice(
                 name=_T(
@@ -83,7 +73,6 @@ class Schedule(commands.GroupCog, name="s"):
         i: discord.Interaction,
         name: str,
         when: str,
-        recur: int = 0,
         recur_interval: Optional[int] = None,
     ) -> None:
         converted_interval = RecurInterval(recur_interval) if recur_interval else None
@@ -95,7 +84,7 @@ class Schedule(commands.GroupCog, name="s"):
             user_id=i.user.id,
             name=name,
             when=datetime_obj,
-            recur=bool(recur),
+            recur=recur_interval is not None,
             recur_interval=converted_interval,
         )
         logging.info(f"[{i.user.id}] Adding event: {event}")
@@ -135,7 +124,7 @@ class Schedule(commands.GroupCog, name="s"):
             )
         embed.set_author(name=i.user.display_name, icon_url=i.user.display_avatar.url)
         await i.response.send_message(embed=embed)
-        
+
         now = datetime.datetime.now(tz=timezone("Asia/Taipei"))
         if event.when - now < datetime.timedelta(hours=12):
             cog = self.bot.cogs["AutoTask"]
@@ -165,6 +154,29 @@ class Schedule(commands.GroupCog, name="s"):
                 total=len(events)
             )
         )
+        await i.response.send_message(embed=embed)
+
+    @app_commands.command(
+        name=_T("delete", context="commands.delete.name"),
+        description=_T(
+            "Delete a scheduled event by ID",
+            context="commands.delete.description",
+        ),
+    )
+    @app_commands.rename(id=_T("ID", context="commands.delete.params.id.name"))
+    @app_commands.describe(id=_T("ID", context="commands.delete.params.id.description"))
+    async def delete(self, i: discord.Interaction, id: int) -> None:
+        await self.bot.db.events.delete(id)
+        lang = i.locale.value
+        embed = DefaultEmbed()
+        embed.title = translator.translate(lang, "commands.delete.embed.title")
+        embed.description = translator.translate(
+            lang, "commands.delete.embed.description"
+        )
+        embed.set_footer(
+            text=translator.translate(lang, "commands.delete.embed.footer")
+        )
+        embed.set_author(name=i.user.display_name, icon_url=i.user.display_avatar.url)
         await i.response.send_message(embed=embed)
 
 
