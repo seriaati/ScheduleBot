@@ -1,14 +1,13 @@
 commands:
   delete:
     name: delete
-    description: 根據 ID 刪除已規劃的行程
+    description: 刪除一個已規劃的行程
     params:
-      id:
-        name: id
-        description: 要刪除的行程 ID
+      event:
+        name: event
+        description: 要刪除的行程
     embed:
       title: 行程已刪除
-      description: '行程 #{id} 已刪除'
       footer: 使用 /s list 來查看已規劃的行程
   list:
     name: list

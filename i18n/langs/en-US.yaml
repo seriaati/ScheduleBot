@@ -1,14 +1,13 @@
 commands:
   delete:
     name: delete
-    description: Delete a scheduled event by ID
+    description: Delete a scheduled event
     params:
-      id:
-        name: id
-        description: ID of the event to delete
+      event:
+        name: event
+        description: event to delete
     embed:
       title: Event Deleted
-      description: 'Event #{id} deleted'
       footer: Use /s list to view scheduled events
   list:
     name: list

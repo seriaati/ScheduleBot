@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Optional
+from typing import List, Optional
 
 import discord
 import parsedatetime
@@ -159,25 +159,45 @@ class Schedule(commands.GroupCog, name="s"):
     @app_commands.command(
         name=_T("delete", context="commands.delete.name"),
         description=_T(
-            "Delete a scheduled event by ID",
+            "Delete a scheduled event",
             context="commands.delete.description",
         ),
     )
-    @app_commands.rename(id=_T("id", context="commands.delete.params.id.name"))
-    @app_commands.describe(id=_T("id", context="commands.delete.params.id.description"))
-    async def delete(self, i: discord.Interaction, id: int) -> None:
-        await self.bot.db.events.delete(id)
+    @app_commands.rename(event=_T("event", context="commands.delete.params.event.name"))
+    @app_commands.describe(event=_T("event", context="commands.delete.params.event.description"))
+    async def delete(self, i: discord.Interaction, event: int) -> None:
+        await self.bot.db.events.delete(event)
         lang = i.locale.value
         embed = DefaultEmbed()
         embed.title = translator.translate(lang, "commands.delete.embed.title")
-        embed.description = translator.translate(
-            lang, "commands.delete.embed.description"
-        )
         embed.set_footer(
             text=translator.translate(lang, "commands.delete.embed.footer")
         )
         embed.set_author(name=i.user.display_name, icon_url=i.user.display_avatar.url)
         await i.response.send_message(embed=embed)
+    
+    @delete.autocomplete("event")
+    async def delete_autocomplete_event(
+        self, i: discord.Interaction, current: str
+    ) -> List[app_commands.Choice[int]]:
+        events = await self.bot.db.events.get_all_of_user(i.user.id)
+        if current:
+            return [
+                app_commands.Choice(
+                    name=event.name,
+                    value=event.id,
+                )
+                for event in events
+                if current.lower() in event.name.lower()
+            ][:25]
+        else:
+            return [
+                app_commands.Choice(
+                    name=event.name,
+                    value=event.id,
+                )
+                for event in events
+            ][:25]
 
 
 async def setup(bot: Bot) -> None:
